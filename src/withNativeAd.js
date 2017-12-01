@@ -47,7 +47,9 @@ export default (Component: Function) => class NativeAdWrapper extends React.Comp
    */
   componentDidMount() {
     this.removeSubscription = this.props.adsManager.onAdsLoaded(
-      () => this.setState({ canRequestAds: true })
+      (e) => {
+        this.setState({ canRequestAds: true })
+      }
     );
   }
 
@@ -60,15 +62,16 @@ export default (Component: Function) => class NativeAdWrapper extends React.Comp
 
   render() {
     const { adsManager, ...props } = this.props;
-
     if (!this.state.canRequestAds) {
       return null;
     }
-
     return (
       <NativeAdView
+        pointerEvents={'box-none'}
         adsManager={adsManager.toJSON()}
-        onAdLoaded={(e) => this.setState({ ad: e.nativeEvent })}
+        onAdLoaded={(e) => {
+          this.setState({ ad: e.nativeEvent })}
+        }
       >
         {this.state.ad && <Component nativeAd={this.state.ad} {...props} />}
       </NativeAdView>

@@ -54,17 +54,19 @@ class NativeAdsManager {
     NativeAppEventEmitter.addListener('CTKNativeAdsManagersChanged', (managers) => {
       const isValidNew = managers[this.placementId];
       const isValid = this.isValid;
-
       if (isValid !== isValidNew) {
         if (isValidNew) {
           this.eventEmitter.emit(EVENT_DID_BECOME_VALID);
         } else {
           this.eventEmitter.emit(EVENT_DID_BECOME_INVALID);
         }
-
         this.isValid = isValidNew;
       }
     });
+
+    NativeAppEventEmitter.addListener('CTKNativeAdsManagersError', (error) => {
+        this.eventEmitter.emit(EVENT_DID_BECOME_INVALID);
+    })
   }
 
   /**
@@ -80,7 +82,6 @@ class NativeAdsManager {
     }
 
     this.eventEmitter.once(EVENT_DID_BECOME_VALID, func);
-
     return () => this.eventEmitter.removeListener(EVENT_DID_BECOME_VALID, func);
   }
 

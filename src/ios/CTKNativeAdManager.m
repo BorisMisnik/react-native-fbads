@@ -50,7 +50,6 @@ RCT_EXPORT_METHOD(init:(NSString *)placementId withAdsToRequest:(NSInteger*)adsT
 
   __weak typeof(self) weakSelf = self;
   [adsManager setDelegate:weakSelf];
-
   [adsManager loadAds];
 
   [_adsManagers setValue:adsManager forKey:placementId];
@@ -66,16 +65,17 @@ RCT_EXPORT_METHOD(disableAutoRefresh:(NSString*)placementId) {
 
 - (void)nativeAdsLoaded {
   NSMutableDictionary<NSString*, NSNumber*> *adsManagersState = [NSMutableDictionary new];
-
+    
   [_adsManagers enumerateKeysAndObjectsUsingBlock:^(NSString* key, FBNativeAdsManager* adManager, __unused BOOL* stop) {
+      
     [adsManagersState setValue:@([adManager isValid]) forKey:key];
   }];
-
   [_bridge.eventDispatcher sendAppEventWithName:@"CTKNativeAdsManagersChanged" body:adsManagersState];
 }
 
 - (void)nativeAdsFailedToLoadWithError:(NSError *)error {
   // @todo handle errors here
+  [_bridge.eventDispatcher sendAppEventWithName:@"CTKNativeAdsManagersError" body:error];
 }
 
 - (dispatch_queue_t)methodQueue {
