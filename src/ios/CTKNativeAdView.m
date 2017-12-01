@@ -27,6 +27,8 @@
     @"callToActionText": _nativeAd.callToAction,
     @"coverImage": _nativeAd.coverImage ? [_nativeAd.coverImage.url absoluteString] : [NSNull null],
     @"icon": _nativeAd.icon ? [_nativeAd.icon.url absoluteString] : [NSNull null],
+    @"adChoiceLinkUrl": _nativeAd.adChoicesLinkURL ? [_nativeAd.adChoicesLinkURL absoluteString] : [NSNull null],
+    @"adChoiceIconUrl": _nativeAd.adChoicesIcon ? [_nativeAd.adChoicesIcon.url absoluteString] : [NSNull null],
   });
 
   [_nativeAd registerViewForInteraction:self withViewController:RCTKeyWindow().rootViewController];
