@@ -15,6 +15,9 @@
 // `onAdLoaded` event called when ad has been loaded
 @property (nonatomic, copy) RCTBubblingEventBlock onAdLoaded;
 
+// `onAdsError` event called when ad has been loaded
+@property (nonatomic, copy) RCTBubblingEventBlock onAdsError;
+
 // NativeAd this view has been loaded with
 @property (nonatomic, strong) FBNativeAd* nativeAd;
 

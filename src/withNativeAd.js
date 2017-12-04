@@ -80,6 +80,11 @@ export default (Component: Function) => class NativeAdWrapper extends React.Comp
       <NativeAdView
         pointerEvents={'box-none'}
         adsManager={adsManager.toJSON()}
+        onAdsError={(e) => {
+          if (this.props.onAdsError) {
+            this.props.onAdsError(e.nativeEvent);
+          }
+        }}
         onAdLoaded={(e) => this.setState({ ad: e.nativeEvent })}
         clickable={clickable}
         ref={root => this.rootRef = findNodeHandle(root)}
