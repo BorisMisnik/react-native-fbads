@@ -92,7 +92,7 @@ public class NativeAdView extends ReactViewGroup {
             event.putString("icon", iconImage.getUrl());
         }
 
-        mEventEmitter.receiveEvent(getId(), "onAdLoaded", );
+        mEventEmitter.receiveEvent(getId(), "onAdLoaded", event);
 
         setAdClickable(mClickable);
     }
@@ -149,7 +149,7 @@ public class NativeAdView extends ReactViewGroup {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    sendAppEvent("CTKNativeAdsManagersClicked", mNativeAd.ge);
+                    sendAppEvent("CTKNativeAdsManagersClicked", null);
                     return false;
                 }
                 return false;
