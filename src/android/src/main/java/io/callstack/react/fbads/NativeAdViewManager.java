@@ -10,18 +10,12 @@ package io.callstack.react.fbads;
 import android.support.annotation.Nullable;
 import android.view.View;
 
-import com.facebook.ads.NativeAdsManager;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.UIBlock;
-import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class NativeAdViewManager extends ViewGroupManager<NativeAdView> {
@@ -47,6 +41,7 @@ public class NativeAdViewManager extends ViewGroupManager<NativeAdView> {
     @ReactProp(name = "adsManager")
     public void setAdsManager(NativeAdView view, String adsManagerId) {
         NativeAdManager adManager = mReactContext.getNativeModule(NativeAdManager.class);
+        view.setmReactContext(mReactContext);
         view.setNativeAd(adManager.getNextNativeAd(adsManagerId));
 
 //        NativeAdsManager adsManager = adManager.getFBAdsManager(adsManagerId);

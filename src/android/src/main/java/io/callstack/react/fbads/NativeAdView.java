@@ -7,14 +7,15 @@
  */
 package io.callstack.react.fbads;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.facebook.ads.NativeAd;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.view.ReactViewGroup;
@@ -40,6 +41,7 @@ public class NativeAdView extends ReactViewGroup {
 
     /** List of clickable views */
     List<View> clickableViews = new ArrayList<>();
+    private ReactApplicationContext mReactContext;
 
     /**
      * Creates new NativeAdView instance and retrieves event emitter
@@ -48,7 +50,6 @@ public class NativeAdView extends ReactViewGroup {
      */
     public NativeAdView(ThemedReactContext context) {
         super(context);
-
         mEventEmitter = context.getJSModule(RCTEventEmitter.class);
     }
 
@@ -70,6 +71,7 @@ public class NativeAdView extends ReactViewGroup {
             return;
         }
 
+
         NativeAd.Image coverImage = nativeAd.getAdCoverImage();
         NativeAd.Image iconImage = nativeAd.getAdIcon();
 
@@ -90,7 +92,7 @@ public class NativeAdView extends ReactViewGroup {
             event.putString("icon", iconImage.getUrl());
         }
 
-        mEventEmitter.receiveEvent(getId(), "onAdLoaded", event);
+        mEventEmitter.receiveEvent(getId(), "onAdLoaded", );
 
         setAdClickable(mClickable);
     }
@@ -124,6 +126,7 @@ public class NativeAdView extends ReactViewGroup {
                 float deltaX = Math.abs(startX - ev.getX());
                 float deltaY = Math.abs(startY - ev.getY());
                 if (deltaX < 200 & deltaY < 200) {
+                    System.out.println("performClick 2");
                     performClick();
                 }
                 break;
@@ -142,6 +145,16 @@ public class NativeAdView extends ReactViewGroup {
     public List<View> addClickableView(View clickableView) {
         this.extractClickableChildren(clickableViews, clickableView);
         mNativeAd.registerViewForInteraction(clickableView, clickableViews);
+        mNativeAd.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    sendAppEvent("CTKNativeAdsManagersClicked", mNativeAd.ge);
+                    return false;
+                }
+                return false;
+            }
+        });
         return clickableViews;
     }
 
@@ -171,5 +184,23 @@ public class NativeAdView extends ReactViewGroup {
      */
     public NativeAd getNativeAd() {
         return mNativeAd;
+    }
+
+    /**
+     * Helper for sending events back to Javascript.
+     *
+     * @param eventName
+     * @param params
+     */
+    private void sendAppEvent(String eventName, Object params) {
+        if (mReactContext == null || !mReactContext.hasActiveCatalystInstance()) {
+            return;
+        }
+
+        mReactContext.getJSModule(RCTNativeAppEventEmitter.class).emit(eventName, params);
+    }
+
+    public void setmReactContext(ReactApplicationContext mReactContext) {
+        this.mReactContext = mReactContext;
     }
 }

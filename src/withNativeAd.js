@@ -55,8 +55,8 @@ export default (Component: Function) => class NativeAdWrapper extends React.Comp
   componentWillMount() {
     this.removeErrorSubscription = this.props.adsManager.onAdsError(
       (error) => {
-        if (this.props.onAdError) {
-          this.props.onAdError(error);
+        if (this.props.onAdsError) {
+          this.props.onAdsError(error);
         }
       }
     );
@@ -85,7 +85,9 @@ export default (Component: Function) => class NativeAdWrapper extends React.Comp
             this.props.onAdsError(e.nativeEvent);
           }
         }}
-        onAdLoaded={(e) => this.setState({ ad: e.nativeEvent })}
+        onAdLoaded={(e) => {
+          this.setState({ ad: e.nativeEvent })
+        }}
         clickable={clickable}
         ref={root => this.rootRef = findNodeHandle(root)}
       >
