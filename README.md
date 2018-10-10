@@ -1,7 +1,7 @@
-react-native-fbads [![npm version](https://badge.fury.io/js/react-native-fbads.svg)](https://badge.fury.io/js/react-native-fbads)
+react-native-fbads [![npm version][version-badge]][package]
 ============
 
-<a title="Join on Slack" href="slack.callstack.io"><img src="https://slack.callstack.io/badge.svg" /></a>
+[![chat][chat-badge]][chat]
 
 [![Facebook Ads](http://i.imgur.com/yH3s6rd.png)](https://developers.facebook.com/products/app-monetization)
 
@@ -29,6 +29,9 @@ react-native-fbads [![npm version](https://badge.fury.io/js/react-native-fbads.s
       - [setMediaCachePolicy](#setmediacachepolicy)
     - [InterstitialAdManager](#interstitialadmanager)
       - [showAd](#showad)
+    - [RewardedVideoAdManager](#rewardedvideoadmanager)
+      - [loadAd](#loadAd)
+      - [showAd](#showAd)
     - [AdSettings](#adsettings)
       - [currentDeviceHash](#currentdevicehash)
       - [addTestDevice](#addtestdevice)
@@ -57,6 +60,20 @@ Install JavaScript packages:
 
 ```bash
 $ react-native install react-native-fbads@3.1.1
+```
+
+#### Upgrading to latest version
+
+```
+react-native unlink react-native-fbads
+
+npm install react-native-fbads@latest --save
+
+react-native link react-native-fbads
+
+//IOS NOTICE
+Use pod to install fbAudience framework
+
 ```
 
 ### 2. Configure native projects
@@ -122,18 +139,42 @@ The constructor accepts two parameters:
 
 #### 2. Making ad component
 
+
 After creating `adsManager` instance, next step is to wrap an arbitrary component that you want to
 use for rendering your custom advertises with a `withNativeAd` wrapper.
 
 It's a higher order component that passes `nativeAd` via props to a wrapped component allowing
 you to actually render an ad!
 
+The `nativeAd` object can contain the following properties:
+
+- `advertiserName` - The name of the Facebook Page or mobile app that represents the business running each ad.
+- `headline` - The headline that the advertiser entered when they created their ad. This is usually the ad's main title.
+- `linkDescription` - Additional information that the advertiser may have entered.
+- `translation` - The word 'ad', translated into the language based upon Facebook app language setting.
+- `promotedTranslation` - The word 'promoted', translated into the language based upon Facebook app language setting.
+- `sponsoredTranslation` - The word 'sponsored', translated into the language based upon Facebook app language setting.
+- `bodyText` - Ad body
+- `callToActionText` - Call to action phrase, e.g. - "Install Now"
+- `socialContext` - social context for the Ad, for example "Over half a million users"
+
+
+** Note: ** Don't use more than one MediaView/AdIconView component within one native ad.
+
+** Note: ** To make any text `Triggerable` wrap it in <TriggerableView></TriggerableView> use only <Text /> component
+
+
 ```js
+import { AdIconView,MediaView,TriggerableView } from 'react-native-ads-facebook';
 class AdComponent extends React.Component {
   render() {
     return (
       <View>
-        <Text>{this.props.nativeAd.description}</Text>
+        <AdIconView />
+        <MediaView />
+        <TriggerableView>
+            <Text>{this.props.nativeAd.description}</Text>
+        </TriggerableView>
       </View>
     );
   }
@@ -142,19 +183,25 @@ class AdComponent extends React.Component {
 export default withNativeAd(AdComponent);
 ```
 
-For full details on the `nativeAd` object, please check flowtype definitions [here](https://github.com/callstack-io/react-native-fbads/blob/master/src/types.js)
-
 #### 3. Rendering an ad
 
 Finally, you can render your wrapped component from previous step and pass it `adsManager`
 of your choice.
+
+##### Adchoice position props
+
+| prop | default | required | params | description |
+|------------------|----------|----------|-----------------------------------------------------------------------------|----------------------------------|
+| adsManager | null | true | `const adsManager = new NativeAdsManager(placementId, numberOfAdsToRequest)` | Set Placement id for native ad |
+| adChoicePosition | topRight | false | `topLeft , topRight , bottomLeft , bottomRight` | Set Ad choice position |
+| expandable | true | false | BOOLEAN | IOS only set Adchoice expandable |
 
 ```js
 class MainApp extends React.Component {
   render() {
     return (
       <View>
-        <AdComponent adsManager={adsManager} />
+        <AdComponent adsManager={adsManager} adChoicePosition="topLeft" expandable={false} />
       </View>
     );
   }
@@ -249,6 +296,36 @@ On Android you have to add following activity to *AndroidManifest.xml*
 ```
 
 **Note:** There can be only one `showAd` call being performed at a time. Otherwise, an error will be thrown.
+
+### RewardedVideoAdManager
+
+```js
+import { RewardedVideoAdManager } from "react-native-fbads";
+```
+
+RewardedVideoAdManager is a manager that allows you to load a rewarded video, then show the video once the video is loaded, in that order.
+
+#### loadAd
+
+Loads a rewarded video asynchronously, returns success / true if it loads, error if there wasn't an ad fill or an error from the audience network SDK.
+
+```js
+RewardedVideoAdManager.loadAd('placementId')
+  .then(...) // fill success
+  .catch(...); // no fill or SDK error
+```
+
+#### showAd
+
+Shows a rewarded video immediately, returns success if the video was watched to completion and the user should be rewarded, error if the video wasn't complete or there was an error from the audience network SDK.
+
+```js
+RewardedVideoAdManager.showAd()
+  .then(...) // fully watched video, set your reward.
+  .catch(...); // error
+```
+
+**Note:** You need to be sure to load then show each time you wish to show a rewarded video ad. You also cannot load another video in the success callback of showAd().
 
 ### AdSettings
 
@@ -348,3 +425,9 @@ $ cd ./example && npm run android
 ### Credits
 
 Some of the API explanations were borrowed from Facebook SDK documentation.
+
+<!-- badges -->
+[version-badge]: https://img.shields.io/npm/v/react-native-fbads.svg?style=flat-square
+[package]: https://www.npmjs.com/package/react-native-fbads
+[chat-badge]: https://img.shields.io/discord/426714625279524876.svg?style=flat-square&colorB=758ED3
+[chat]: https://discord.gg/zwR2Cdh
