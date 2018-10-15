@@ -13,8 +13,8 @@ RCT_EXPORT_MODULE(CTKNativeAdEmitter)
     [self sendEventWithName:@"CTKNativeAdsManagersChanged" body:adManagersState];
 }
 
-- (void)sendError:(NSString *)error {
-    [self sendEventWithName:(@"CTKNativeAdsError") body:error];
+- (void)sendError:(NSDictionary<NSString *,NSString *> *)errorState {
+    [self sendEventWithName:(@"CTKNativeAdsError") body:errorState];
 }
 
 - (void)sendClickEvent:(NSString *)placementId {

@@ -49,13 +49,13 @@ class NativeAdsManager {
      *
      * AdsManager will become loading ads immediately
      */
-    constructor(placementId: string, adsToRequest: number = 10) {
-        this.placementId = placementId;
+    constructor(placementId: string, adsToRequest: number = 10, adIndificator: string) {
+        this.placementId = adIndificator;
         this.adsToRequest = adsToRequest;
 
         this._listenForStateChanges();
 
-        CTKNativeAdManager.init(placementId, adsToRequest);
+        CTKNativeAdManager.init(placementId, adsToRequest, adIndificator);
     }
 
     /**
@@ -63,22 +63,22 @@ class NativeAdsManager {
      * callers will be notified of a change
      */
     _listenForStateChanges() {
-        nativeAdEmitter.addListener('CTKNativeAdsManagersChanged', managers => {
-            const isValidNew = managers[this.placementId];
-            const isValid = this.isValid;
-            if (isValid !== isValidNew && isValidNew) {
-                this.isValid = true;
-                this.eventEmitter.emit(EVENT_DID_BECOME_VALID);
-            }
-        });
+        // nativeAdEmitter.addListener('CTKNativeAdsManagersChanged', managers => {
+        //     const isValidNew = managers[this.placementId];
+        //     const isValid = this.isValid;
+        //     if (isValid !== isValidNew && isValidNew) {
+        //         this.isValid = true;
+        //         this.eventEmitter.emit(EVENT_DID_BECOME_VALID);
+        //     }
+        // });
 
-        nativeAdEmitter.addListener('CTKNativeAdsClicked', managers => {
-            this.eventEmitter.emit(EVENT_ADS_CLICKED);
-        });
-
-        nativeAdEmitter.addListener('CTKNativeAdsError', error => {
-            this.eventEmitter.emit(EVENT_DID_BECOME_ERROR, error);
-        });
+        // nativeAdEmitter.addListener('CTKNativeAdsClicked', managers => {
+        //     this.eventEmitter.emit(EVENT_ADS_CLICKED);
+        // });
+        //
+        // nativeAdEmitter.addListener('CTKNativeAdsError', error => {
+        //     this.eventEmitter.emit(EVENT_DID_BECOME_ERROR, error);
+        // });
     }
 
     /**
@@ -88,15 +88,16 @@ class NativeAdsManager {
      * handler for events
      */
     onAdsLoaded(func: Function): EmitterSubscription {
-        if (this.isValid) {
-            setTimeout(func);
-            return {
-                remove: () => {
-                },
-            };
-        }
-
-        return this.eventEmitter.once(EVENT_DID_BECOME_VALID, func);
+        setTimeout(func);
+        return {
+            remove: () => {
+            },
+        };
+        // if (this.isValid) {
+        //
+        // }
+        //
+        // return this.eventEmitter.once(EVENT_DID_BECOME_VALID, func);
     }
 
     /**

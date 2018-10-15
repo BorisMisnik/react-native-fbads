@@ -52,7 +52,7 @@ public class NativeAdManager extends ReactContextBaseJavaModule {
    * @param adsToRequest
    */
   @ReactMethod
-  public void init(final String placementId, final int adsToRequest) {
+  public void init(final String placementId, final int adsToRequest, final String indificator) {
     final ReactApplicationContext reactContext = this.getReactApplicationContext();
 
     UiThreadUtil.runOnUiThread(new Runnable() {
@@ -60,12 +60,7 @@ public class NativeAdManager extends ReactContextBaseJavaModule {
       public void run() {
         final NativeAd adsManager = new NativeAd(reactContext, placementId);
 
-//        adsManager.setListener(NativeAdManager.this);
-//
-        mAdsManagers.put(placementId, adsManager);
-//
-//        adsManager.loadAds();
-          adsManager.setAdListener(new NativeAdListener() {
+        adsManager.setAdListener(new NativeAdListener() {
               @Override
               public void onMediaDownloaded(Ad ad) {
 
@@ -73,24 +68,35 @@ public class NativeAdManager extends ReactContextBaseJavaModule {
 
               @Override
               public void onError(Ad ad, AdError adError) {
-                  sendAppEvent("CTKNativeAdsError", adError.getErrorMessage());
+                  WritableMap errorState = Arguments.createMap();
+
+                  errorState.putString("placementId", ad.getPlacementId());
+                  errorState.putString("indificator", indificator);
+                  errorState.putString("error", adError.getErrorMessage());
+
+                  sendAppEvent("CTKNativeAdsError", errorState);
               }
 
               @Override
               public void onAdLoaded(Ad ad) {
                   WritableMap adsManagersState = Arguments.createMap();
+                  if (adsManager != ad || !adsManager.isAdLoaded()) {
+                      mAdsManagers.remove(indificator);
 
-                  for (String key : mAdsManagers.keySet()) {
-                      NativeAd adsManager = mAdsManagers.get(key);
-                      adsManagersState.putBoolean(key, adsManager.isAdLoaded());
+                      adsManagersState.putBoolean(indificator, false);
+                      sendAppEvent("CTKNativeAdsManagersChanged", adsManagersState);
+                      return;
                   }
 
+                  mAdsManagers.put(indificator, adsManager);
+                  adsManagersState.putBoolean(indificator, true);
                   sendAppEvent("CTKNativeAdsManagersChanged", adsManagersState);
               }
 
               @Override
               public void onAdClicked(Ad ad) {
                   String id = ad.getPlacementId();
+
                   if (id != null) {
                       sendAppEvent("CTKNativeAdsClicked", ad.getPlacementId());
                   }
@@ -156,7 +162,13 @@ public class NativeAdManager extends ReactContextBaseJavaModule {
    * @return
    */
   public NativeAd getFBAdsManager(String placementId) {
-    return mAdsManagers.get(placementId);
+      NativeAd ad = mAdsManagers.get(placementId);
+      return ad;
+  }
+
+  public void removeFromFBAdsManager(String placementId) {
+      Log.d("REMOVE_ADS", placementId);
+      mAdsManagers.remove(placementId);
   }
 
   /**

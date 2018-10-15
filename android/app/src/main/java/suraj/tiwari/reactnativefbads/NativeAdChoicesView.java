@@ -7,6 +7,7 @@
  */
 package suraj.tiwari.reactnativefbads;
 
+import com.facebook.ads.Ad;
 import com.facebook.ads.NativeAd;
 import com.facebook.ads.AdChoicesView;
 import com.facebook.react.bridge.ReactContext;
@@ -21,11 +22,11 @@ public class NativeAdChoicesView extends ReactViewGroup {
     mContext = context;
   }
 
-  public void setNativeAd(NativeAd nativeAd) {
-    AdChoicesView adChoicesView = new AdChoicesView(mContext, nativeAd, true);
-    adChoicesView.measure(40, 40);
-    adChoicesView.layout(0, 0, 40, 40);
-    adChoicesView.bringToFront();
-    addView(adChoicesView);
+  public void setNativeAd(Ad nativeAd) {
+//    AdChoicesView adChoicesView = new AdChoicesView(mContext, nativeAd, true);
+//    adChoicesView.measure(40, 40);
+//    adChoicesView.layout(0, 0, 40, 40);
+//    adChoicesView.bringToFront();
+//    addView(adChoicesView);
   }
 }

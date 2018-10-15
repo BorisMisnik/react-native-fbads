@@ -8,7 +8,6 @@
 #import <React/RCTConvert.h>
 #import <React/RCTUIManager.h>
 #import <React/RCTBridgeModule.h>
-
 @implementation RCTConvert (EXNativeAdView)
 
 RCT_ENUM_CONVERTER(FBNativeAdsCachePolicy, (@{
@@ -23,6 +22,12 @@ RCT_ENUM_CONVERTER(FBNativeAdsCachePolicy, (@{
 @property (nonatomic, strong) NSMutableDictionary<NSString*, FBNativeAd*> *adsManagers;
 @property (nonatomic, strong) NSString *myAdChoiceViewPlacementId;
 @property (readwrite) NSInteger errorCode;
+@property (readwrite) NSString *placementId;
+@property (readwrite) FBNativeAd *adv;
+@property (nonatomic, strong) NSMutableArray *queue;
+@property (readwrite) BOOL isFetching;
+@property (nonatomic, strong) NSString *indificator;
+
 
 @end
 
@@ -36,7 +41,8 @@ RCT_EXPORT_MODULE(CTKNativeAdManager)
 {
   self = [super init];
   if (self) {
-    _adsManagers = [NSMutableDictionary new];
+      _adsManagers = [NSMutableDictionary new];
+      _queue = [NSMutableArray array];
   }
   return self;
 }
@@ -106,19 +112,38 @@ RCT_EXPORT_METHOD(registerViewsForInteraction:(nonnull NSNumber *)nativeAdViewTa
   }];
 }
 
-RCT_EXPORT_METHOD(init:(NSString *)placementId withAdsToRequest:(nonnull NSNumber *)adsToRequest)
+RCT_EXPORT_METHOD(init:(NSString *)placementId withAdsToRequest:(nonnull NSNumber *)adsToRequest adIndificator:(NSString *)indificator)
 {
-
-    FBNativeAd *adsManager = [[FBNativeAd alloc] initWithPlacementID:placementId];
-    
-    _myAdChoiceViewPlacementId = placementId;
-    
-    adsManager.delegate = self;
-
-    [adsManager loadAd];
-    
-    [_adsManagers setValue:adsManager forKey:placementId];
+    if (_isFetching) {
+        __weak typeof(self) weakSelf = self;
+        [_queue addObject:^{
+            [weakSelf loadAd: placementId indificator: indificator];
+        }];
+    } else {
+        [self loadAd: placementId indificator: indificator];
+    }
 }
+
+
+-(void) loadAd:(NSString *)placementId indificator: (NSString *)indificator {
+    _isFetching = YES;
+    _indificator = indificator;
+    
+    FBNativeAd *adsManager = [[FBNativeAd alloc] initWithPlacementID:placementId];
+    adsManager.delegate = self;
+    [adsManager loadAd];
+}
+
+-(void) getNextAd {
+    _isFetching = NO;
+    id firstObj = [_queue firstObject];
+    
+    if (firstObj != nil) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:firstObj];
+        [_queue removeObject:firstObj];
+    }
+}
+
 
 RCT_EXPORT_METHOD(setMediaCachePolicy:(NSString*)placementId cachePolicy:(FBNativeAdsCachePolicy)cachePolicy)
 {
@@ -137,22 +162,36 @@ RCT_EXPORT_METHOD(disableAutoRefresh:(NSString*)placementId)
 
 - (void) nativeAdDidLoad:(FBNativeAd *)nativeAd
 {
-  NSMutableDictionary<NSString*, NSNumber*> *adsManagersState = [NSMutableDictionary new];
-//
-  [_adsManagers enumerateKeysAndObjectsUsingBlock:^(NSString* key, FBNativeAd* adManager, __unused BOOL* stop) {
-    [adsManagersState setValue:@([adManager isAdValid]) forKey:key];
-  }];
-//
-  EXNativeAdEmitter *nativeAdEmitter = [_bridge moduleForClass:[EXNativeAdEmitter class]];
-  [nativeAdEmitter sendManagersState:adsManagersState];
+    NSMutableDictionary<NSString*, NSNumber*> *adsManagersState = [NSMutableDictionary new];
+    
+    if ([nativeAd isAdValid] == NO) {
+        [adsManagersState setValue:@(NO) forKey:_indificator];
+        [self getNextAd];
+    } else {
+        _adv = nativeAd;
+        [adsManagersState setValue:@(YES) forKey:_indificator];
+    }
+    
+    EXNativeAdEmitter *nativeAdEmitter = [_bridge moduleForClass:[EXNativeAdEmitter class]];
+    [nativeAdEmitter sendManagersState:adsManagersState];
 }
-
 
 - (void)nativeAd:(FBNativeAd *)nativeAd didFailWithError:(NSError *)error
 {
+    
+    NSMutableDictionary<NSString*, NSString*> *errorState = [NSMutableDictionary new];
     EXNativeAdEmitter *nativeAdEmitter = [_bridge moduleForClass:[EXNativeAdEmitter class]];
+    
     _errorCode = error.code;
-    [nativeAdEmitter sendError:[NSString stringWithFormat:@"%li", (long)_errorCode]];
+    _placementId = [nativeAd placementID];
+    
+    [errorState setValue:[NSString stringWithFormat:@"%li", (long)_errorCode] forKey:@"error"];
+    [errorState setValue:_placementId forKey:@"placementId"];
+    [errorState setValue:_indificator forKey:@"indificator"];
+    
+    [nativeAdEmitter sendError:errorState];
+    [self getNextAd];
+    
 }
 
 - (void)nativeAdDidClick:(FBNativeAd *)nativeAd
@@ -169,7 +208,10 @@ RCT_EXPORT_METHOD(disableAutoRefresh:(NSString*)placementId)
 RCT_EXPORT_VIEW_PROPERTY(onAdLoaded, RCTBubblingEventBlock)
 RCT_CUSTOM_VIEW_PROPERTY(adsManager, NSString, EXNativeAdView)
 {
-  view.nativeAd = _adsManagers[json];
+    if (_adv) {
+        view.nativeAd = _adv;
+    }
+    [self getNextAd];
 }
 
 @end

@@ -105,8 +105,10 @@ export default <T>(Component: React.ComponentType<T>) =>
          * On init, register for updates on `adsManager` to know when it becomes available
          */
         componentDidMount() {
-            this._subscription = this.props.adsManager.onAdsLoaded(() =>
-                this.setState({canRequestAds: true})
+            this._subscription = this.props.adsManager.onAdsLoaded(() => {
+                    this.setState({canRequestAds: true})
+            }
+
             );
         }
 

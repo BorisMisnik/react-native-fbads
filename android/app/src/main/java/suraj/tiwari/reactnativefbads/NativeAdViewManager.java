@@ -36,7 +36,12 @@ public class NativeAdViewManager extends ViewGroupManager<NativeAdView> {
       NativeAdManager adManager = reactContext.getNativeModule(NativeAdManager.class);
       NativeAd adsManager = adManager.getFBAdsManager(adsManagerId);
 
+      if (adsManager == null) {
+        return;
+      }
+
       view.setNativeAd(adsManager);
+      adManager.removeFromFBAdsManager(adsManagerId);
     } else {
       Log.e("E_NOT_RCT_CONTEXT", "View's context is not a ReactContext, so it's not possible to get NativeAdManager.");
     }

@@ -61,7 +61,6 @@ public class NativeAdView extends ReactViewGroup {
       return;
     }
 
-
     WritableMap event = Arguments.createMap();
     event.putString("headline", nativeAd.getAdHeadline());
     event.putString("socialContext", nativeAd.getAdSocialContext());

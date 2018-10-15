@@ -8,6 +8,7 @@
 
 package suraj.tiwari.reactnativefbads;
 
+import com.facebook.ads.Ad;
 import com.facebook.ads.NativeAd;
 import com.facebook.ads.NativeAdsManager;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -33,7 +34,7 @@ public class NativeAdChoicesViewManager extends SimpleViewManager<NativeAdChoice
   @ReactProp(name = "placementId")
   public void adsManager(NativeAdChoicesView view, String adsManagerId) {
     NativeAdManager adManager = mReactContext.getNativeModule(NativeAdManager.class);
-    NativeAd adsManager = adManager.getFBAdsManager(adsManagerId);
+    Ad adsManager = adManager.getFBAdsManager(adsManagerId);
 
     view.setNativeAd(adsManager);
   }
