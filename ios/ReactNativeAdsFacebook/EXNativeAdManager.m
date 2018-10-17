@@ -166,7 +166,6 @@ RCT_EXPORT_METHOD(disableAutoRefresh:(NSString*)placementId)
     
     if ([nativeAd isAdValid] == NO) {
         [adsManagersState setValue:@(NO) forKey:_indificator];
-        [self getNextAd];
     } else {
         _adv = nativeAd;
         [adsManagersState setValue:@(YES) forKey:_indificator];
@@ -174,6 +173,7 @@ RCT_EXPORT_METHOD(disableAutoRefresh:(NSString*)placementId)
     
     EXNativeAdEmitter *nativeAdEmitter = [_bridge moduleForClass:[EXNativeAdEmitter class]];
     [nativeAdEmitter sendManagersState:adsManagersState];
+    [self getNextAd];
 }
 
 - (void)nativeAd:(FBNativeAd *)nativeAd didFailWithError:(NSError *)error
